@@ -30,6 +30,7 @@ class App(arcade.View):
         # agregar piso
         floor_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         floor_shape = pymunk.Segment(floor_body, [0, 15], [WIDTH, 15], 0.0)
+        floor_shape.collision_type = 999
         floor_shape.friction = 10
         self.space.add(floor_body, floor_shape)
 
@@ -52,16 +53,26 @@ class App(arcade.View):
         self.handler.post_solve = self.collision_handler
 
     def get_active_bird(self):
-
         if len(self.birds) == 0:
             return None
 
         bird = self.birds[-1]
 
-        if bird.body.velocity.length > 30:
-            return bird
+        # si tocó el suelo
+        if bird.has_touched_ground:
+            return None
 
-        return None
+        # si salió de la pantalla
+        if (
+            bird.center_x < 0
+            or bird.center_x > WIDTH
+            or bird.center_y < 0
+            or bird.center_y > HEIGHT
+        ):
+            return None
+
+        return bird
+
     
     def on_key_press(self, symbol, modifiers):
 
@@ -76,6 +87,18 @@ class App(arcade.View):
             
 
     def collision_handler(self, arbiter, space, data):
+        shapes = arbiter.shapes
+
+        # detectar contacto con el suelo
+        for bird in self.birds:
+
+            if bird.shape in shapes:
+
+                for shape in shapes:
+
+                    if shape.collision_type == 999:
+                        bird.has_touched_ground = True
+
         impulse_norm = arbiter.total_impulse.length
         if impulse_norm < 100:
             return True
@@ -191,6 +214,15 @@ class App(arcade.View):
         if self.draw_line:
             arcade.draw_line(self.start_point.x, self.start_point.y, self.end_point.x, self.end_point.y,
                              arcade.color.BLACK, 3)
+        
+        arcade.draw_text(
+            "Key R: Red Bird   Key A: Yellow Bird   Key B: Blue Bird",
+            20,
+            HEIGHT - 40,
+            arcade.color.BLACK,
+            20,
+            bold=True
+        )
 
 
 def main():

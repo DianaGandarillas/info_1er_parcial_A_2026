@@ -23,7 +23,7 @@ class Bird(arcade.Sprite):
         power_multiplier: float = 50,
         elasticity: float = 0.8,
         friction: float = 1,
-        collision_layer: int = 0,
+        collision_layer: int = 1,
     ):
         super().__init__(image_path, scale)
         # body
@@ -45,6 +45,7 @@ class Bird(arcade.Sprite):
 
         self.body = body
         self.shape = shape
+        self.has_touched_ground = False
 
     def update(self, delta_time):
         """
