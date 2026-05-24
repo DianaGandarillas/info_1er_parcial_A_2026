@@ -16,6 +16,7 @@ class Bird(arcade.Sprite):
         x: float,
         y: float,
         space: pymunk.Space,
+        scale: float = 1,
         mass: float = 5,
         radius: float = 12,
         max_impulse: float = 300,
@@ -24,7 +25,7 @@ class Bird(arcade.Sprite):
         friction: float = 1,
         collision_layer: int = 0,
     ):
-        super().__init__(image_path, 1)
+        super().__init__(image_path, scale)
         # body
         moment = pymunk.moment_for_circle(mass, 0, radius)
         body = pymunk.Body(mass, moment)
@@ -139,10 +140,37 @@ class YellowBird(Bird):
     (self.body.velocity).
     """
 
-    ### ---------------------- ###
-    ### SU IMPLEMENTACION AQUI ###
-    ### ---------------------- ###
-    pass
+    def __init__(self, impulse_vector, x, y, space):
+        super().__init__(
+            "assets/img/yellow.png",
+            impulse_vector,
+            x,
+            y,
+            space,
+            scale=0.04
+        )
+
+        self.power_multiplier = 2
+        self.boost_used = False
+
+    def activate_power(self):
+
+        if self.boost_used:
+            return
+
+        velocity = self.body.velocity
+
+        if velocity.length == 0:
+            return
+
+        direction = velocity.normalized()
+
+        boost = direction * velocity.length * self.power_multiplier
+
+        self.body.apply_impulse_at_local_point(boost)
+
+        self.boost_used = True
+    
 
 
 class BlueBird(Bird):
@@ -163,7 +191,61 @@ class BlueBird(Bird):
     como argumento. Esa decision de diseno es parte del ejercicio.
     """
 
-    ### ---------------------- ###
-    ### SU IMPLEMENTACION AQUI ###
-    ### ---------------------- ###
-    pass
+    def __init__(self, impulse_vector, x, y, space):
+        super().__init__(
+            "assets/img/blue.png",
+            impulse_vector,
+            x,
+            y,
+            space,
+            scale=0.12
+        )
+
+        self.space = space
+        self.split_used = False
+
+    def activate_power(self):
+
+        if self.split_used:
+            return []
+
+        velocity = self.body.velocity
+
+        if velocity.length == 0:
+            return []
+
+        angles = [
+            math.radians(-30),
+            0,
+            math.radians(30)
+        ]
+
+        new_birds = []
+
+        for angle_offset in angles:
+
+            new_velocity = velocity.rotated(angle_offset)
+
+            impulse_vector = ImpulseVector(
+                angle=new_velocity.angle,
+                impulse=new_velocity.length / 50
+            )
+
+            bird = BlueBird(
+                impulse_vector,
+                self.center_x,
+                self.center_y,
+                self.space
+            )
+
+            bird.body.velocity = new_velocity
+
+            new_birds.append(bird)
+
+        self.remove_from_sprite_lists()
+        self.space.remove(self.body, self.shape)
+
+        self.split_used = True
+
+        return new_birds
+    

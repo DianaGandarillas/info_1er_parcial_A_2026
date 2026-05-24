@@ -3,7 +3,7 @@ import logging
 import arcade
 import pymunk
 
-from game_object import Bird, Column, Pig
+from game_object import Bird, Column, Pig, YellowBird, BlueBird
 from game_logic import get_impulse_vector, Point2D, get_distance
 
 logging.basicConfig(level=logging.DEBUG)
@@ -36,6 +36,9 @@ class App(arcade.View):
         self.sprites = arcade.SpriteList()
         self.birds = arcade.SpriteList()
         self.world = arcade.SpriteList()
+
+        self.current_bird_type = "red"
+
         self.add_columns()
         self.add_pigs()
 
@@ -47,6 +50,30 @@ class App(arcade.View):
         # agregar un collision handler
         self.handler = self.space.add_default_collision_handler()
         self.handler.post_solve = self.collision_handler
+
+    def get_active_bird(self):
+
+        if len(self.birds) == 0:
+            return None
+
+        bird = self.birds[-1]
+
+        if bird.body.velocity.length > 30:
+            return bird
+
+        return None
+    
+    def on_key_press(self, symbol, modifiers):
+
+        if symbol == arcade.key.R:
+            self.current_bird_type = "red"
+
+        elif symbol == arcade.key.A:
+            self.current_bird_type = "yellow"
+
+        elif symbol == arcade.key.B:
+            self.current_bird_type = "blue"
+            
 
     def collision_handler(self, arbiter, space, data):
         impulse_norm = arbiter.total_impulse.length
@@ -77,11 +104,32 @@ class App(arcade.View):
         self.sprites.update(delta_time)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if button == arcade.MOUSE_BUTTON_LEFT:
-            self.start_point = Point2D(x, y)
-            self.end_point = Point2D(x, y)
-            self.draw_line = True
-            logger.debug(f"Start Point: {self.start_point}")
+        if button != arcade.MOUSE_BUTTON_LEFT:
+            return
+
+        active_bird = self.get_active_bird()
+
+        # si hay un pajaro volando se activar poder
+        if active_bird is not None:
+
+            if isinstance(active_bird, YellowBird):
+                active_bird.activate_power()
+
+            elif isinstance(active_bird, BlueBird):
+
+                new_birds = active_bird.activate_power()
+
+                for bird in new_birds:
+                    self.sprites.append(bird)
+                    self.birds.append(bird)
+
+            return
+
+        # si no hay pajaro volando se inicia arrastre
+        self.start_point = Point2D(x, y)
+        self.end_point = Point2D(x, y)
+
+        self.draw_line = True
 
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
         if buttons == arcade.MOUSE_BUTTON_LEFT:
@@ -89,13 +137,51 @@ class App(arcade.View):
             logger.debug(f"Dragging to: {self.end_point}")
 
     def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
-        if button == arcade.MOUSE_BUTTON_LEFT:
-            logger.debug(f"Releasing from: {self.end_point}")
-            self.draw_line = False
-            impulse_vector = get_impulse_vector(self.start_point, self.end_point)
-            bird = Bird("assets/img/red-bird3.png", impulse_vector, x, y, self.space)
-            self.sprites.append(bird)
-            self.birds.append(bird)
+        if button != arcade.MOUSE_BUTTON_LEFT:
+            return
+
+        # evitar disparar si no estabamos arrastrando
+        if not self.draw_line:
+            return
+
+
+        self.draw_line = False
+
+        impulse_vector = get_impulse_vector(
+            self.start_point,
+            self.end_point
+        )
+
+        if self.current_bird_type == "red":
+
+            bird = Bird(
+                "assets/img/red-bird3.png",
+                impulse_vector,
+                x,
+                y,
+                self.space
+            )
+
+        elif self.current_bird_type == "yellow":
+
+            bird = YellowBird(
+                impulse_vector,
+                x,
+                y,
+                self.space
+            )
+
+        else:
+
+            bird = BlueBird(
+                impulse_vector,
+                x,
+                y,
+                self.space
+            )
+
+        self.sprites.append(bird)
+        self.birds.append(bird)
 
     def on_draw(self):
         self.clear()
