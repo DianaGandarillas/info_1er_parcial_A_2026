@@ -40,8 +40,11 @@ class App(arcade.View):
 
         self.current_bird_type = "red"
 
-        self.add_columns()
-        self.add_pigs()
+        #self.add_columns()
+        #self.add_pigs()
+        self.level = 1
+        self.score = 0
+        self.load_level()
 
         self.start_point = Point2D()
         self.end_point = Point2D()
@@ -51,6 +54,75 @@ class App(arcade.View):
         # agregar un collision handler
         self.handler = self.space.add_default_collision_handler()
         self.handler.post_solve = self.collision_handler
+
+
+    def load_level(self):
+
+        # limpiar mundo anterior
+        for obj in self.world:
+            obj.remove_from_sprite_lists()
+
+            if obj.body in self.space.bodies:
+                self.space.remove(obj.body, obj.shape)
+
+        self.world.clear()
+
+        # LEVEL 1
+        if self.level == 1:
+
+            for x in range(WIDTH // 2, WIDTH, 400):
+
+                column = Column(x, 50, self.space)
+
+                self.sprites.append(column)
+                self.world.append(column)
+
+            pig = Pig(WIDTH / 2, 100, self.space)
+
+            self.sprites.append(pig)
+            self.world.append(pig)
+
+            self.target_score = 100
+
+        # LEVEL 2
+        elif self.level == 2:
+
+            for x in range(WIDTH // 2, WIDTH, 250):
+
+                column = Column(x, 50, self.space)
+
+                self.sprites.append(column)
+                self.world.append(column)
+
+            pig1 = Pig(WIDTH / 2, 100, self.space)
+            pig2 = Pig(WIDTH / 2 + 250, 100, self.space)
+
+            self.sprites.append(pig1)
+            self.sprites.append(pig2)
+
+            self.world.append(pig1)
+            self.world.append(pig2)
+
+            self.target_score = 300
+
+        # LEVEL 3
+        elif self.level == 3:
+
+            for x in range(WIDTH // 2, WIDTH, 180):
+
+                column = Column(x, 50, self.space)
+
+                self.sprites.append(column)
+                self.world.append(column)
+
+            for i in range(4):
+
+                pig = Pig(WIDTH / 2 + i * 200, 100, self.space)
+
+                self.sprites.append(pig)
+                self.world.append(pig)
+
+            self.target_score = 1000
 
     def get_active_bird(self):
         if len(self.birds) == 0:
@@ -106,6 +178,11 @@ class App(arcade.View):
         if impulse_norm > 1200:
             for obj in self.world:
                 if obj.shape in arbiter.shapes:
+                    if isinstance(obj, Pig):
+                        self.score += 100
+
+                    elif isinstance(obj, Column):
+                        self.score += 25
                     obj.remove_from_sprite_lists()
                     self.space.remove(obj.shape, obj.body)
 
@@ -125,6 +202,11 @@ class App(arcade.View):
     def on_update(self, delta_time: float):
         self.space.step(1 / 60.0)  # actualiza la simulacion de las fisicas
         self.sprites.update(delta_time)
+        if self.score >= self.target_score:
+
+            self.level += 1
+
+            self.load_level()
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button != arcade.MOUSE_BUTTON_LEFT:
@@ -219,6 +301,23 @@ class App(arcade.View):
             "Key R: Red Bird   Key A: Yellow Bird   Key B: Blue Bird",
             20,
             HEIGHT - 40,
+            arcade.color.BLACK,
+            20,
+            bold=True
+        )
+        
+        arcade.draw_text(
+            f"Nivel: {self.level}",
+            20,
+            HEIGHT - 75,
+            arcade.color.BLACK,
+            20,
+            bold=True
+        )
+        arcade.draw_text(
+            f"Puntaje: {self.score}",
+            20,
+            HEIGHT - 110,
             arcade.color.BLACK,
             20,
             bold=True
