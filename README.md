@@ -1,5 +1,50 @@
 # Infografia UPB I/2026 - 1er parcial A (Angry Birds)
 
+## COMO JUGAR
+Seleccion de pájaro
+R = Red Bird
+A = Yellow Bird
+B = Blue Bird
+
+## Como lanzar un pajaro
+  Hacer clic izquierdo para iniciar el arrastre.
+  Arrastrar el mouse hacia atras para definir:direccion y fuerza del disparo
+  Soltar el mouse para lanzar el pajaro.
+
+  Mientras mas lejos se arrastre el mouse, mayor sera el impulso aplicado al pajaro.
+
+
+## IMPORTANTE
+ Para diferenciar el click izquierdo si es para lanzar al pajaro o si es para activar una 
+ habilidad especial, una vez el pajaro este en aire, no toque el suelo y no se salga de la 
+ pantalla, se podra activar la habilidad con el click izquierdo, de lo contrario el clik izquierdo
+ sirve para lanzar al pajaro.
+
+
+## Sistema de niveles
+
+El juego incluye un sistema de niveles basado en puntaje acumulado.
+
+Cada nivel aumenta la dificultad agregando:
+
+mas columnas
+mas pigs
+menor espacio entre estructuras
+
+Cuando el jugador alcanza el puntaje requerido, el juego avanza automáticamente al siguiente nivel.
+
+Solo hay hasta el nivel 3.
+
+## Sistema de puntaje
+
+El jugador obtiene puntos destruyendo objetos.
+
+Puntajes
+Destruir un Pig = +100 puntos
+Destruir una Column = +25 puntos
+
+El puntaje acumulado se muestra en la parte superior derecha de la pantalla junto al nivel actual.
+
 ## Descripcion
 
 Este repositorio contiene el codigo base para el proyecto de tipo A.
